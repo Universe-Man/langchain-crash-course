@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 # from langchain_community.llms import OpenAI
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
-from langchain_core.runnables import RunnablePassthrough
+from langchain_core.runnables import RunnablePassthrough, RunnableSequence
 
 # from langchain.chains import SimpleSequentailChain
 
@@ -49,6 +49,23 @@ menu_items_chain = (
 
 # print(name.content, items.content)
 
-chain = {"cuisine": name_chain} | menu_items_chain
-result = chain.invoke({"cuisine": "Mexican"})
-print(result.content)
+full_chain = RunnableSequence(
+    RunnablePassthrough().assign(restaurant_name=name_chain)
+    | RunnablePassthrough().assign(menu_items=menu_items_chain)
+)
+
+# SequentialChain(
+#     chains = [chain1, chain2],
+#     input_variables = ["this"],
+#     output_variables = ["that", "thises"]
+# )
+
+
+# {
+#     "cuisine": name_chain,
+#     "restaurant_name": RunnablePassthrough(),
+# } | menu_items_chain
+
+result = full_chain.invoke({"cuisine": "American"})
+print(result["restaurant_name"].content)
+print(result["menu_items"].content)
